@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .row div {
+            margin: 0 15px;
+        }
+
+        .label, .score, .textbox {
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .textbox {
+            width: 50px;
+            height: 50px;
+            font-size: 32px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .textbox:focus {
+            outline: none;
+        }
+
+        .score {
+            font-size: 16px;
+        }
+
+        .correct {
+    background-color: green !important;
+    color: white !important;
+}
+        .incorrect {
+            background-color: red !important;
+        }
+
+        .timer {
+            font-size: 18px;
+        }
+        .modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  padding-top: 15%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.7);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 30px;
+  border: 2px solid #888;
+  width: 60%;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: -10px;
+  cursor: pointer;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+</head>
+<body>
+    <div id="puzzle-container">
+        {% for word_info in puzzle %}
+            {% set word_index = loop.index0 %}
+            {% set word = word_info[0] %}
+            {% set hints = word_info[1] %}
+            <div class="word-block" id="word_{{ word_index }}" style="{% if word_index != 0 %}display:none;{% endif %}">
+                <div class="row">
+                    {% for i in range(word|length) %}
+                        <div class="textbox-wrapper">
+                            <input 
+                                type="text" 
+                                id="tb_{{ word_index }}_{{ i }}" 
+                                class="textbox" 
+                                data-word="{{ word_index }}"
+                                data-idx="{{ i }}" 
+                                maxlength="1"
+                                {% if i in hints %} 
+                                    value="{{ word[i] }}" 
+                                    disabled 
+                                {% endif %}
+                            >
+                            <div id="timer_{{ word_index }}_{{ i }}" class="timer">0.0</div>
+                        </div>
+                    {% endfor %}
+                    <div class="score-display" id="score_{{ word_index }}">Score: 0</div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div id="final-score-container" style="display: none;">
+        <h3>Total Puzzle Score: <span id="total-score">0</span></h3>
+    </div>
+    
+    <script>
+        let puzzle = {{ puzzle|tojson }};
+        let wordScores = [];
+        let totalScore = 0;
+        let maxWords = puzzle.length;
+        let totalWordsSolved = 0;
+        let timers = {};
+        let activeInputs = {};  // Track focus state
+        
+        function calculateScore(seconds) {
+            if (seconds < 2) return 100;
+            if (seconds < 4) return 75;
+            if (seconds < 6) return 50;
+            if (seconds < 8) return 25;
+            if (seconds < 10) return 10;
+            return 0;
+        }
+        
+        function startInputTimer(wordIndex, letterIndex) {
+            const input = document.getElementById(`tb_${wordIndex}_${letterIndex}`);
+            if (input.disabled) return;
+        
+            const timerId = `timer_${wordIndex}_${letterIndex}`;
+            let startTime = Date.now();
+            activeInputs[timerId] = true;
+        
+            timers[timerId] = setInterval(() => {
+                if (!activeInputs[timerId]) return;  // Pause if not active
+        
+                let elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                document.getElementById(timerId).innerText = elapsed;
+        
+                if (elapsed >= 10) {
+                    input.value = puzzle[wordIndex][0][letterIndex];
+                    input.disabled = true;
+                    input.classList.remove('incorrect');
+                    input.classList.add('correct');
+                    clearInterval(timers[timerId]);
+                    checkWordSolved(wordIndex);
+                }
+            }, 100);
+        }
+        
+        function pauseInputTimer(wordIndex, letterIndex) {
+            const timerId = `timer_${wordIndex}_${letterIndex}`;
+            activeInputs[timerId] = false;
+        }
+        
+        function checkWordSolved(wordIndex) {
+            const word = puzzle[wordIndex][0];
+            const hints = puzzle[wordIndex][1];
+            let isSolved = true;
+            let score = 0;
+        
+            for (let i = 0; i < word.length; i++) {
+                const input = document.getElementById(`tb_${wordIndex}_${i}`);
+                const timerId = `timer_${wordIndex}_${i}`;
+                const value = input.value.toLowerCase();
+        
+                if (hints.includes(i)) continue;
+        
+                if (input.disabled) {
+                    // Only add score if it was solved by user (not autofilled)
+                    const time = parseFloat(document.getElementById(timerId).innerText);
+                    if (!input.classList.contains('autofill')) {
+                        score += calculateScore(time);
+                    }
+                    continue;
+                }
+        
+                if (value === word[i].toLowerCase()) {
+                    input.disabled = true;
+                    clearInterval(timers[timerId]);
+                    input.classList.remove('incorrect');
+                    input.classList.add('correct');
+                    const time = parseFloat(document.getElementById(timerId).innerText);
+                    score += calculateScore(time);
+                } else {
+                    isSolved = false;
+                    input.classList.add('incorrect');
+                }
+            }
+        
+            if (isSolved) {
+                wordScores[wordIndex] = score;
+                totalScore = wordScores.reduce((a, b) => a + b, 0);
+                document.getElementById(`score_${wordIndex}`).innerText = `Score: ${score}`;
+                totalWordsSolved++;
+        
+                if (wordIndex + 1 < maxWords) {
+                    document.getElementById(`word_${wordIndex + 1}`).style.display = 'block';
+                } else {
+                    document.getElementById('final-score-container').style.display = 'block';
+                    document.getElementById('total-score').innerText = totalScore;
+                    confetti({
+    particleCount: 150,
+    spread: 100,
+    origin: { y: 0.6 }
+});
+                }
+            }
+
+            if (totalWordsSolved === maxWords) {
+    document.getElementById('final-score-container').style.display = 'block';
+    document.getElementById('total-score').innerText = totalScore;
+
+    // Confetti!
+    confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 }
+    });
+
+    // Show modal
+    document.getElementById("winModal").style.display = "block";
+    document.getElementById("modal-final-score").innerText = totalScore;
+}
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add listeners to all editable textboxes
+
+            document.getElementById("closeModal").onclick = function() {
+    document.getElementById("winModal").style.display = "none";
+};
+
+window.onclick = function(event) {
+    if (event.target == document.getElementById("winModal")) {
+        document.getElementById("winModal").style.display = "none";
+    }
+};
+            document.querySelectorAll('.textbox').forEach(input => {
+                const wordIndex = parseInt(input.dataset.word);
+                const letterIndex = parseInt(input.dataset.idx);
+        
+                if (!input.disabled) {
+                    input.classList.add('incorrect');
+                }
+        
+                input.addEventListener('focus', () => {
+                    startInputTimer(wordIndex, letterIndex);
+                });
+        
+                input.addEventListener('blur', () => {
+                    pauseInputTimer(wordIndex, letterIndex);
+                });
+        
+                input.addEventListener('input', () => {
+                    checkWordSolved(wordIndex);
+                });
+            });
+        });
+        </script>
+        
+        <div id="winModal" class="modal">
+            <div class="modal-content">
+              <span class="close" id="closeModal">&times;</span>
+              <h2>🎉 Puzzle Complete! 🎉</h2>
+              <p>Your total score is <strong><span id="modal-final-score">0</span></strong> points!</p>
+              <button onclick="location.reload()">Play Again</button>
+            </div>
+          </div>       
+</body>
+</html>
