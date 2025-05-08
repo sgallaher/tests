@@ -32,11 +32,11 @@ with app.app_context():
 def index():
     puzzle = []
     page = request.args.get('page', 1, type=int)
-    per_page = 5  # Change as needed
+    per_page = 5  # Number of tests per page
     pagination = Test.query.order_by(Test.id.desc()).paginate(page=page, per_page=per_page)
-    tests = pagination.items
+    recent_tests = pagination.items
     has_next = pagination.has_next
-    return render_template("index.html", tests=tests, page=page, has_next=has_next, puzzle=puzzle)
+    return render_template("index.html", puzzle=puzzle, recent_tests=recent_tests, page=page, has_next=has_next)
 
 # Accessing a test
 @app.route('/test/<token>')

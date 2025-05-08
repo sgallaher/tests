@@ -1,10 +1,15 @@
-function redirectToToken(event) {
-    event.preventDefault();
-    const token = document.getElementById('token').value;
-    if (token) {
-        window.location.href = `/${token}`;
+
+    function redirectToToken(event) {
+        event.preventDefault(); // Prevent the default form submission
+        const tokenInput = document.getElementById('token');
+        const token = tokenInput.value.trim(); // Get the token value and trim whitespace
+        if (token) {
+            window.location.href = `/test/${token}`; // Redirect to the /test/<token> URL
+        } else {
+            alert('Please enter a valid token.'); // Handle empty input
+        }
     }
-}
+
 
 let puzzle = JSON.parse(document.getElementById('puzzle-data').textContent || '[]');
 let wordScores = new Array(puzzle.length).fill(0);

@@ -18,7 +18,7 @@
             <h2>Recently Created Tests</h2>
             <ul>
                 {% for test in recent_tests %}
-                    <li><a href="/{{ test.token }}">Test Token: {{ test.token }}</a></li>
+                    <li><a href="test/{{ test.token }}">Test Token: {{ test.token }}</a></li>
                 {% endfor %}
             </ul>
             <div class="pagination">
