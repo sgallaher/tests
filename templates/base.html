@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Puzzle Timer{% endblock %}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Arial', sans-serif;
+            margin-bottom: 20px;
+        }
+
+        a, button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background: #2575fc;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        a:hover, button:hover {
+            background: #6a11cb;
+        }
+
+        input[type="text"], input[type="submit"] {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        input[type="text"] {
+            width: 80%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .textbox-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 5px;
+        }
+
+        .textbox {
+            width: 1ch; /* Adjusted to fit exactly one character */
+            height: 40px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin: 0;
+        }
+
+        .textbox:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+
+        .row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .timer {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #fff;
+        }
+
+        .correct {
+            background-color: green !important;
+            color: white !important;
+        }
+
+        .incorrect {
+            background-color: red !important;
+        }
+    </style>
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
