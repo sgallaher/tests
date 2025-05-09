@@ -43,4 +43,62 @@
     <a href="/">Take Another Test</a>
     <a href="/create-test">Create a New Test</a>
 </div>
+
+<!-- Add the audio element for the MIDI clip -->
+<audio id="victory-audio" src="{{ url_for('static', filename='audio/champions.mp3') }}" preload="auto"></audio>
+
+<!-- Button to trigger the celebration -->
+<div id="celebration-container" style="display: none; text-align: center; margin-top: 20px;">
+    <button id="celebrate-button" style="padding: 10px 20px; font-size: 16px; background-color: #2575fc; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Celebrate Your Victory!
+    </button>
+</div>
+
+<!-- Confetti and MIDI playback script -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Check if the user is in position 1
+        const userPosition = {{ user_position }};
+        if (userPosition === 1) {
+            // Show the celebration button
+            const celebrationContainer = document.getElementById('celebration-container');
+            celebrationContainer.style.display = 'block';
+
+            // Add event listener to the button
+            const celebrateButton = document.getElementById('celebrate-button');
+            celebrateButton.addEventListener('click', function () {
+                // Play the MIDI clip
+                const audio = document.getElementById('victory-audio');
+                audio.play().catch(function (error) {
+                    console.error('Audio playback failed:', error);
+                    alert('Unable to play the audio. Please check your browser settings.');
+                });
+
+                // Trigger confetti animation
+                const duration = 5 * 1000; // 5 seconds
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 }
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 }
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                })();
+            });
+        }
+    });
+</script>
 {% endblock %}
