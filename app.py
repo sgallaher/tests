@@ -92,15 +92,95 @@ def submit_test():
     token = request.form.get('token')
     scores = request.form.get('scores')  # Comma-separated scores
 
+    # Fetch the test by token
     test = Test.query.filter_by(token=token).first()
     if not test:
         return "Invalid token.", 404
 
+    # Save the user's attempt
     attempt = Attempt(test_id=test.id, name=name, scores=scores)
     db.session.add(attempt)
     db.session.commit()
 
-    return render_template("success.html")
+    # Calculate the user's total score
+    user_score = sum(map(int, scores.split(',')))
+
+    # Fetch all attempts for the test and calculate scores
+    attempts = Attempt.query.filter_by(test_id=test.id).all()
+    all_scores = sorted(
+        [(attempt.name, sum(map(int, attempt.scores.split(',')))) for attempt in attempts],
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    # Find the user's position
+    user_position = next((i + 1 for i, (_, score) in enumerate(all_scores) if score == user_score), None)
+    if user_position is None:
+        return "User score not found in the rankings.", 404
+
+    # Pagination logic
+    per_page = 10
+    start_index = ((user_position - 1) // per_page) * per_page
+    end_index = start_index + per_page
+    paginated_scores = all_scores[start_index:end_index]
+
+    # Determine if there are previous/next pages
+    has_previous = start_index > 0
+    has_next = end_index < len(all_scores)
+
+    # Render the success page with the ranked scores
+    return render_template(
+        "success.html",
+        scores=paginated_scores,
+        user_position=user_position,
+        user_score=user_score,
+        has_previous=has_previous,
+        has_next=has_next,
+        start_index=start_index,
+        token=token
+    )
+
+@app.route('/test-scores/<token>/<int:user_score>')
+def test_scores(token, user_score):
+    # Fetch the test by token
+    test = Test.query.filter_by(token=token).first()
+    if not test:
+        return "Invalid token.", 404
+
+    # Fetch all attempts for the test and calculate scores
+    attempts = Attempt.query.filter_by(test_id=test.id).all()
+    all_scores = sorted(
+        [(attempt.name, sum(map(int, attempt.scores.split(',')))) for attempt in attempts],
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    # Get the start index from the query parameter (default to 0)
+    start_index = int(request.args.get('start', 0))
+
+    # Pagination logic
+    per_page = 10
+    end_index = start_index + per_page
+    paginated_scores = all_scores[start_index:end_index]
+
+    # Determine if there are previous/next pages
+    has_previous = start_index > 0
+    has_next = end_index < len(all_scores)
+
+    # Find the user's position
+    user_position = next((i + 1 for i, (_, score) in enumerate(all_scores) if score == user_score), None)
+
+    # Render the success page with the ranked scores
+    return render_template(
+        "success.html",
+        scores=paginated_scores,
+        user_position=user_position,
+        user_score=user_score,
+        has_previous=has_previous,
+        has_next=has_next,
+        start_index=start_index,
+        token=token
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

@@ -118,6 +118,69 @@
         li {
             margin-bottom: 5px; /* Optional: Add spacing between list items */
         }
+
+        /* Center the table on the page */
+        table {
+            margin: 20px auto; /* Center the table */
+            border-collapse: collapse;
+            width: 80%; /* Adjust width as needed */
+        }
+
+        /* Style the table headers */
+        th {
+            background-color: #2575fc;
+            color: white;
+            padding: 10px;
+            text-align: left; /* Left-align header text */
+            border: 1px solid #ddd;
+        }
+
+        /* Style the table cells */
+        td {
+            padding: 10px;
+            text-align: left; /* Left-align cell text */
+            border: 1px solid #ddd;
+            color: #333; /* Default text color for better readability */
+        }
+
+        /* Add alternating row colors */
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        /* Highlight row on hover */
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Highlight the user's row */
+        tr[style] {
+            background-color: #6a11cb !important;
+            color: white !important; /* Ensure text is readable on the highlighted row */
+        }
+
+        /* Pagination links */
+        .pagination {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .pagination a {
+            margin: 5px;
+            padding: 10px 15px;
+            text-decoration: none;
+            background-color: #2575fc;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .pagination a:hover {
+            background-color: #6a11cb;
+        }
     </style>
     {% block extra_styles %}{% endblock %}
 </head>

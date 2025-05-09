@@ -5,6 +5,40 @@
 {% block content %}
 <h1>🎉 Test Submitted Successfully! 🎉</h1>
 <p>Your test has been submitted. Thank you for participating!</p>
+
+<h2>Ranked Scores</h2>
+{% if scores %}
+<table>
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Score</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for score_tuple in scores %}
+        <tr {% if loop.index == user_position %}style="background-color: #6a11cb; color: white;"{% endif %}>
+            <td>{{ loop.index + start_index }}</td>
+            <td>{{ score_tuple[0] }}</td>
+            <td>{{ score_tuple[1] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No scores available for this test.</p>
+{% endif %}
+
+<div class="pagination">
+    {% if has_previous %}
+    <a href="{{ url_for('test_scores', token=token, user_score=user_score) }}?start={{ start_index - 10 }}">← Previous</a>
+    {% endif %}
+    {% if has_next %}
+    <a href="{{ url_for('test_scores', token=token, user_score=user_score) }}?start={{ start_index + 10 }}">Next →</a>
+    {% endif %}
+</div>
+
 <div>
     <a href="/">Take Another Test</a>
     <a href="/create-test">Create a New Test</a>
