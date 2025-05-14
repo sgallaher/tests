@@ -1,14 +1,16 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from random import randint, choice
 import os
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_PUBLIC_URL')
-
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tests.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_PUBLIC_URL',
+    'sqlite:///tests.db'
+)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")  # Add this line
 db = SQLAlchemy(app)
 
 # Models
@@ -183,6 +185,39 @@ def test_scores(token, user_score):
         start_index=start_index,
         token=token
     )
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    if request.method == 'POST':
+        # Get selected test and attempt IDs from the form
+        test_ids = request.form.getlist('test_ids')
+        attempt_ids = request.form.getlist('attempt_ids')
+
+        # Delete selected attempts
+        if attempt_ids:
+            for attempt_id in attempt_ids:
+                attempt = Attempt.query.get(int(attempt_id))
+                if attempt:
+                    db.session.delete(attempt)
+            db.session.commit()
+            flash(f"Deleted {len(attempt_ids)} attempts.")
+
+        # Delete selected tests (and their attempts)
+        if test_ids:
+            for test_id in test_ids:
+                # Delete attempts for this test
+                Attempt.query.filter_by(test_id=int(test_id)).delete()
+                # Delete the test itself
+                test = Test.query.get(int(test_id))
+                if test:
+                    db.session.delete(test)
+            db.session.commit()
+            flash(f"Deleted {len(test_ids)} tests and their attempts.")
+
+    # Fetch all tests and attempts for display
+    tests = Test.query.all()
+    attempts = Attempt.query.all()
+    return render_template('admin.html', tests=tests, attempts=attempts)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

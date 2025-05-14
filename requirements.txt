@@ -4,3 +4,4 @@ flask_sqlalchemy
 flask_bcrypt
 flask_mail
 psycopg2-binary
+python-dotenv
