@@ -124,12 +124,13 @@
             margin: 20px auto; /* Center the table */
             border-collapse: collapse;
             width: 80%; /* Adjust width as needed */
+            font-size: 16px; /* Increase font size for better readability */
         }
 
         /* Style the table headers */
         th {
-            background-color: #2575fc;
-            color: white;
+            background-color: #003366; /* Dark blue background for headers */
+            color: white; /* White text for contrast */
             padding: 10px;
             text-align: left; /* Left-align header text */
             border: 1px solid #ddd;
@@ -141,6 +142,7 @@
             text-align: left; /* Left-align cell text */
             border: 1px solid #ddd;
             color: #333; /* Default text color for better readability */
+            background-color: #ffffff; /* White background for all rows */
         }
 
         /* Add alternating row colors */
@@ -154,13 +156,14 @@
 
         /* Highlight row on hover */
         tr:hover {
-            background-color: #f1f1f1;
+            background-color: #e6f7ff; /* Light blue on hover */
         }
 
-        /* Highlight the user's row */
+        /* Highlight the user's row with better contrast */
         tr[style] {
-            background-color: #6a11cb !important;
-            color: white !important; /* Ensure text is readable on the highlighted row */
+            background-color: #ffcc00 !important; /* Yellow background for user's row */
+            color: black !important; /* Black text for contrast */
+            font-weight: bold; /* Make the text bold for better readability */
         }
 
         /* Pagination links */
@@ -173,13 +176,13 @@
             margin: 5px;
             padding: 10px 15px;
             text-decoration: none;
-            background-color: #2575fc;
-            color: white;
+            background-color: #003366; /* Dark blue background */
+            color: white; /* White text */
             border-radius: 5px;
         }
 
         .pagination a:hover {
-            background-color: #6a11cb;
+            background-color: #00509e; /* Slightly lighter blue on hover */
         }
     </style>
     {% block extra_styles %}{% endblock %}
